@@ -1,3 +1,5 @@
+import torch.cuda
+
 from consolegame import playerdata as pd
 from consolegame import neuralnetwork as nn
 from consolegame import Game
@@ -11,8 +13,6 @@ if __name__ == "__main__":
         new_game.add_enemy_brain("../resources/")
         new_game.create_player("Hero", 0, 0)
         new_game.create_player("Enemy", 9, 9)
-        new_game.create_player("Enemy", 0, 9)
-        new_game.create_player("Enemy", 9, 0)
         new_game.start()
 
         while new_game.game_is_running():
