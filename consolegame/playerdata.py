@@ -2,7 +2,7 @@ import json
 
 
 def save_unique_data():
-    main_file = "player.json"
+    main_file = "../resources/player.json"
     # noinspection PyBroadException
     try:
         with open(main_file, "r") as json_file:
@@ -34,21 +34,56 @@ def save_unique_data():
         json.dump(main_data, json_file)
 
 
-def collect_players_data():
-    main_file = "player.json"
+def collect_players_data(main_file, normalize=True):
     # noinspection PyBroadException
     try:
         with open(main_file, "r") as json_file:
             main_data = json.load(json_file)
     except Exception:
         return
+
     for i in range(10):
+        data = None
         # noinspection PyBroadException
         try:
-            with open("player_" + str(i) + ".json", "r") as json_file:
+            with open("../resources/player_" + str(i) + ".json", "r") as json_file:
                 data = json.load(json_file)
+                if normalize:
+                    normalize_data = [[], []]
+                    for j in range(len(data[1])):
+                        if data[1][j] == 3:
+                            normalize_data[0] += [data[0][j]]
+                            normalize_data[1] += [data[1][j]]
+                    k = len(normalize_data[0])
+                    if k == 0:
+                        break
+                    for j in range(len(data[1])):
+                        if data[1][j] == 0:
+                            normalize_data[0] += [data[0][j]]
+                            normalize_data[1] += [data[1][j]]
+                        if k * 2 <= len(normalize_data[0]):
+                            break
+                    for j in range(len(data[1])):
+                        if data[1][j] == 1:
+                            normalize_data[0] += [data[0][j]]
+                            normalize_data[1] += [data[1][j]]
+                        if k * 3 <= len(normalize_data[0]):
+                            break
+                    for j in range(len(data[1])):
+                        if data[1][j] == 2:
+                            normalize_data[0] += [data[0][j]]
+                            normalize_data[1] += [data[1][j]]
+                        if k * 4 <= len(normalize_data[0]):
+                            break
+                    for j in range(len(data[1])):
+                        if data[1][j] == 4:
+                            normalize_data[0] += [data[0][j]]
+                            normalize_data[1] += [data[1][j]]
+                        if k * 5 <= len(normalize_data[0]):
+                            break
+                    data = normalize_data
         except Exception:
-            break
+            pass
         if data:
             main_data[0] += data[0]
             main_data[1] += data[1]

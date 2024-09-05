@@ -1,0 +1,24 @@
+{
+    "net":
+    {
+        "num_iter": 1000,
+        "train_number": 3000,
+        "layers":
+        {
+            "inputLayer": 16,
+            "innerLayers": [50, 30, 8],
+            "outputLayer": 5
+        },
+        "val_number": 10,
+        "show_plot": false,
+        "resave": true,
+        "learning_rate": 0.0001,
+        "weight_decay": 0.0001,
+        "loadData":
+        {
+            "modelName": "model.pt"
+        }
+
+
+    }
+}

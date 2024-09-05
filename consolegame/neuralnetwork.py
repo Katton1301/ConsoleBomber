@@ -5,7 +5,6 @@ import numpy as np
 import json
 import torch
 import os
-from . import playerdata as pd
 
 
 class GameNet(torch.nn.Module):
@@ -53,17 +52,17 @@ class GameNet(torch.nn.Module):
 
                 self.nnArc = torch.nn.Sequential(
                     torch.nn.Linear(dimension_list[0], dimension_list[1]),
-                    torch.nn.Sigmoid()
+                    torch.nn.ELU()
                 )
                 for i in range(1, len(dimension_list) - 1):
                     self.nnArc.append(torch.nn.BatchNorm1d(dimension_list[i]))
                     self.nnArc.append(torch.nn.Linear(dimension_list[i], dimension_list[i + 1]))
-                    self.nnArc.append(torch.nn.Sigmoid())
+                    self.nnArc.append(torch.nn.ELU())
             else:
                 print(f'file {file_name} not found')
 
     def loadModel(self):
-        for root, dirs, files in os.walk("models"):
+        for root, dirs, files in os.walk("../resources/models"):
             if self.modelName in files:
                 self.load_state_dict(torch.load(f"{root}/{self.modelName}"))
                 self.eval()
@@ -78,14 +77,14 @@ class GameNet(torch.nn.Module):
         x = self.fc3(x)
         return x
 
-    def predictAction(self, x):
-        x_train = torch.FloatTensor(x).requires_grad_(True)
+    def predict_action(self, x):
+        x_train = torch.Tensor(x).requires_grad_(True)
         x = x_train.detach().numpy()
 
         double_x = [x, np.zeros(self.inputN)]
         xi = torch.Tensor(double_x).requires_grad_(True)
         y_prediction = self.nnArc(xi)
-        return y_prediction[0]
+        return torch.max(y_prediction[0])
 
     def predict(self, x, y):
         x = x.detach().numpy()
@@ -108,23 +107,21 @@ class GameNet(torch.nn.Module):
 
         for param_tensor in self.state_dict():
             print(param_tensor, "\t", self.state_dict()[param_tensor].size())
-        optimizer = torch.optim.Adam(self.parameters(), lr=self.learning_rate, weight_decay=self.weight_decay)
+        optimizer = torch.optim.Adamax(self.parameters(), lr=self.learning_rate, weight_decay=self.weight_decay)
         # Генерация данных для обучения
         if self.modelName:
-            self.load_state_dict(torch.load(f"models/{self.modelName}"))
+            self.load_state_dict(torch.load(f"../resources/models/{self.modelName}"))
             self.eval()
         if self.genData:
             f = open(self.genData, )
             [x_train, y_train] = json.load(f)
-            y_train = torch.FloatTensor(y_train)
-            x_train = torch.FloatTensor(x_train).requires_grad_(True)
+            y_train = torch.LongTensor(y_train)
+            x_train = torch.Tensor(x_train).requires_grad_(True)
 
             for i_iter in range(self.num_iter):
                 optimizer.zero_grad()
-                criterion = torch.nn.MSELoss()
+                criterion = torch.nn.CrossEntropyLoss()
                 y_prediction = self.nnArc(x_train)
-                # print(y_prediction)
-                # print(y_train)
                 loss = criterion(y_prediction, y_train)
                 loss.backward()
                 loss_train = float(loss.item())
@@ -133,10 +130,9 @@ class GameNet(torch.nn.Module):
             # self.predict(x_train[0],y_train[0])
 
         if self.resave:
-            torch.save(self.state_dict(), 'models/model.pt')
+            torch.save(self.state_dict(), '../resources/models/model_save.pt')
 
 
 if __name__ == "__main__":
-    pd.collect_players_data()
-    net = GameNet("resources/inputTrain.json")
+    net = GameNet("../resources/inputTrain.json")
     net.trainBrain()

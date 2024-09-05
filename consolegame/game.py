@@ -19,7 +19,7 @@ class Game:
 
         self.end_field = EndField(const.DAYS_TO_START_END, _width, _height)
 
-        self.net = nn.GameNet("inputNet.json")
+        self.net = nn.GameNet("../resources/inputNet.json")
         self.modelLoaded = self.net.loadModel()
 
     def check_to_bonus(self):
@@ -280,38 +280,47 @@ class Game:
         changing_params = self.change_params(input_params, action)
         return [self.action_to_symbol(action), changing_params]
 
+    def collect_params(self, player):
+        [
+            enemy_dist_x, enemy_dist_y,
+            enemy_attack_damage, enemy_attack_ready
+        ] = self.get_param_near_enemy(player)
+
+        [
+            bonus_heal_dist_x, bonus_heal_dist_y,
+            bonus_damage_dist_x, bonus_damage_dist_y
+        ] = self.get_param_near_bonuses(player)
+
+        return [
+            player.x,
+            self.width - player.x,
+            player.y,
+            self.height - player.y,
+            player.hit_points,
+            player.damageRate,
+            player.attack_ready,
+            enemy_dist_x,
+            enemy_dist_y,
+            enemy_attack_damage,
+            enemy_attack_ready,
+            self.bonus_days_left,
+            bonus_heal_dist_x,
+            bonus_heal_dist_y,
+            bonus_damage_dist_x,
+            bonus_damage_dist_y
+        ]
+
+    def save_hero_action(self, action):
+        int_action = self.symbol_to_action(action)
+        input_params = self.collect_params(self.hero)
+        changing_params = self.change_params(input_params, int_action)
+        self.hero.action = action
+        self.hero.history.add_day_history_params(*changing_params)
+
     def calc_enemy_action(self):
         for player in self.players_list:
             if player.side != "Hero":
-
-                [
-                    enemy_dist_x, enemy_dist_y,
-                    enemy_attack_damage, enemy_attack_ready
-                ] = self.get_param_near_enemy(player)
-
-                [
-                    bonus_heal_dist_x, bonus_heal_dist_y,
-                    bonus_damage_dist_x, bonus_damage_dist_y
-                ] = self.get_param_near_bonuses(player)
-
-                input_params = [
-                    player.x,
-                    self.width - player.x,
-                    player.y,
-                    self.height - player.y,
-                    player.hit_points,
-                    player.damageRate,
-                    player.attack_ready,
-                    enemy_dist_x,
-                    enemy_dist_y,
-                    enemy_attack_damage,
-                    enemy_attack_ready,
-                    self.bonus_days_left,
-                    bonus_heal_dist_x,
-                    bonus_heal_dist_y,
-                    bonus_damage_dist_x,
-                    bonus_damage_dist_y
-                ]
+                input_params = self.collect_params(player)
                 if self.modelLoaded:
                     [player.action, input_params] = self.predict_action(input_params)
                 else:
@@ -356,7 +365,9 @@ class Game:
             if player.hit_points == 0:
                 player.history.remember_history(0)
                 self.players_dead += 1
-                player.history.save_in_json("player_" + str(self.players_dead) + ".json")
+                file_saved = player.history.save_in_json("../resources/player_" + str(self.players_dead) + ".json")
+                if not file_saved:
+                    print(player.side, " history don't saved")
                 if player.side == "Hero":
                     self.hero = None
                 deleted_players.append(player)
@@ -536,7 +547,11 @@ class History:
 
     def save_in_json(self, filename):
         with open(filename, 'w') as json_file:
+            if len(self.history_params) != len(self.history_points):
+                print("Error-", filename)
+                return False
             json.dump([self.history_params, self.history_points], json_file)
+        return True
 
 
 class EndField:

@@ -1,0 +1,23 @@
+{
+    "net":
+    {
+        "num_iter": 100,
+        "train_number": 3000,
+        "layers":
+        {
+            "inputLayer": 16,
+            "innerLayers": [50, 30, 8],
+            "outputLayer": 5
+        },
+        "val_number": 10,
+        "resave": true,
+        "learning_rate": 0.05,
+        "weight_decay": 0.002,
+        "loadData":
+        {
+            "genData": "../resources/player.json"
+        }
+
+
+    }
+}
