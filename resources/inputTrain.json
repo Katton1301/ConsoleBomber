@@ -1,18 +1,18 @@
 {
     "net":
     {
-        "num_iter": 100,
+        "num_iter": 200,
         "train_number": 3000,
         "layers":
         {
             "inputLayer": 16,
-            "innerLayers": [50, 30, 8],
+            "innerLayers": [100, 50, 20],
             "outputLayer": 5
         },
         "val_number": 10,
         "resave": true,
-        "learning_rate": 0.05,
-        "weight_decay": 0.002,
+        "learning_rate": 0.02,
+        "weight_decay": 0.005,
         "loadData":
         {
             "genData": "../resources/player.json"

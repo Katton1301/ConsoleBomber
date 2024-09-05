@@ -6,7 +6,7 @@
         "layers":
         {
             "inputLayer": 16,
-            "innerLayers": [50, 30, 8],
+            "innerLayers": [100, 50, 20],
             "outputLayer": 5
         },
         "val_number": 10,

@@ -130,7 +130,7 @@ class GameNet(torch.nn.Module):
             # self.predict(x_train[0],y_train[0])
 
         if self.resave:
-            torch.save(self.state_dict(), '../resources/models/model_save.pt')
+            torch.save(self.state_dict(), '../resources/models/model.pt')
 
 
 if __name__ == "__main__":
