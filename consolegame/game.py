@@ -31,6 +31,7 @@ class Game:
                     else:
                         player.damageRate += 1
                     self.bonus_list.remove(bonus)
+                    player.bonus_activate = True
                     del bonus
 
     def check_to_damage(self):
@@ -347,15 +348,18 @@ class Game:
         self.game_day += 1
         for player in self.players_list:
             player.damage = False
+            player.bonus_activate = False
 
     def day_end(self):
         deleted_players = []
         for player in self.players_list:
-            points = 2
+            points = 1
             if player.damage:
-                points -= 1
-            damage_points = self.check_to_making_damage(player)
-            points += damage_points
+                points = 0
+            if player.bonus_activate:
+                points = 2
+            if self.check_to_making_damage(player) > 0:
+                points = 3
 
             if player.attack:
                 player.attack = False
@@ -473,6 +477,7 @@ class Player:
         self.x = _x
         self.y = _y
         self.hit_points = const.DEFAULT_HP
+        self.bonus_activate = False
 
         self.attack_ready = 0
         self.attack = False

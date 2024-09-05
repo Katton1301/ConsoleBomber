@@ -52,12 +52,12 @@ class GameNet(torch.nn.Module):
 
                 self.nnArc = torch.nn.Sequential(
                     torch.nn.Linear(dimension_list[0], dimension_list[1]),
-                    torch.nn.ELU()
+                    torch.nn.ReLU()
                 )
                 for i in range(1, len(dimension_list) - 1):
                     self.nnArc.append(torch.nn.BatchNorm1d(dimension_list[i]))
                     self.nnArc.append(torch.nn.Linear(dimension_list[i], dimension_list[i + 1]))
-                    self.nnArc.append(torch.nn.ELU())
+                    self.nnArc.append(torch.nn.ReLU())
             else:
                 print(f'file {file_name} not found')
 

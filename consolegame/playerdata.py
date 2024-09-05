@@ -75,12 +75,6 @@ def collect_players_data(main_file, normalize=True):
                             normalize_data[1] += [data[1][j]]
                         if k * 4 <= len(normalize_data[0]):
                             break
-                    for j in range(len(data[1])):
-                        if data[1][j] == 4:
-                            normalize_data[0] += [data[0][j]]
-                            normalize_data[1] += [data[1][j]]
-                        if k * 5 <= len(normalize_data[0]):
-                            break
                     data = normalize_data
         except Exception:
             pass

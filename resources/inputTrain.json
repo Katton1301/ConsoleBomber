@@ -1,13 +1,13 @@
 {
     "net":
     {
-        "num_iter": 200,
+        "num_iter": 250,
         "train_number": 3000,
         "layers":
         {
             "inputLayer": 16,
             "innerLayers": [100, 50, 20],
-            "outputLayer": 5
+            "outputLayer": 4
         },
         "val_number": 10,
         "resave": true,

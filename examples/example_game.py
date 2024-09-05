@@ -34,8 +34,8 @@ def simulate_game(game_count):
 
 
 if __name__ == "__main__":
-    simulate_game(5000)
-    exit()
+    # simulate_game(500)
+    # exit()
 
     createGame = True
     while createGame:

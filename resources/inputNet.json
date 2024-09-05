@@ -7,7 +7,7 @@
         {
             "inputLayer": 16,
             "innerLayers": [100, 50, 20],
-            "outputLayer": 5
+            "outputLayer": 4
         },
         "val_number": 10,
         "show_plot": false,
