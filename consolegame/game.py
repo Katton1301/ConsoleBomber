@@ -1,11 +1,37 @@
 import random
 import json
 from . import neuralnetwork as nn
-from . import constants as const
+
+# constants
+_ATTACK_LOADING = 5
+_BONUS_LOADING = 5
+_DEFAULT_HP = 10
+_HEIGHT = 10
+_WIDTH = 10
+_DAYS_TO_START_END = 20
+
+
+def print_rules():
+    print(
+        "Game rules",
+        "Task: Survive longer than enemies",
+        "Control:",
+        "\'W\' - move up",
+        "\'S\' - move down",
+        "\'A\' - move left",
+        "\'D\' - move right",
+        "\'Space\' - Attack",
+        "Attack damage is dealt around th player",
+        "Bonuses:",
+        "\'+\' - heal one hit point",
+        "\'*\' - increase attack range",
+        sep="\n"
+    )
 
 
 class Game:
-    def __init__(self, _width=const.WIDTH, _height=const.HEIGHT):
+    def __init__(self, _width=_WIDTH, _height=_HEIGHT):
+
         self.width = _width
         self.height = _height
         self.hero = None
@@ -14,12 +40,19 @@ class Game:
         self.game_day = 0
         self.game_state = "Start"
         self.winSide = "Draw"
-        self.bonus_days_left = const.BONUS_LOADING
+        self.bonus_days_left = _BONUS_LOADING
         self.players_dead = 0
 
-        self.end_field = EndField(const.DAYS_TO_START_END, _width, _height)
+        self.end_field = EndField(_DAYS_TO_START_END, _width, _height)
+        self.net = None
+        self.modelLoaded = False
+        self.resources_path = None
 
-        self.net = nn.GameNet("../resources/inputNet.json")
+    def add_resource_path(self, _resources_path):
+        self.resources_path = _resources_path
+    def add_enemy_brain(self, _resources_path):
+        self.resources_path = _resources_path
+        self.net = nn.GameNet(self.resources_path + "inputNet.json")
         self.modelLoaded = self.net.loadModel()
 
     def check_to_bonus(self):
@@ -103,7 +136,7 @@ class Game:
         if near_enemy:
             return [player.x - near_enemy.x, player.y - near_enemy.y, near_enemy.damageRate, near_enemy.attack_ready]
         else:
-            return [self.width, self.height, 0, const.ATTACK_LOADING]
+            return [self.width, self.height, 0, _ATTACK_LOADING]
 
     def get_param_near_bonuses(self, player):
         min_dist_heal_bonus = self.width + self.height
@@ -246,7 +279,7 @@ class Game:
     @staticmethod
     def change_params(input_params, action):
         if action == 4:
-            input_params[6] += const.ATTACK_LOADING
+            input_params[6] += _ATTACK_LOADING
         elif action % 2 == 0:
             if action == 0:
                 input_params[2] += 1
@@ -363,15 +396,17 @@ class Game:
 
             if player.attack:
                 player.attack = False
-                player.attack_ready = const.ATTACK_LOADING
+                player.attack_ready = _ATTACK_LOADING
             elif player.attack_ready > 0:
                 player.attack_ready -= 1
             if player.hit_points == 0:
                 player.history.remember_history(0)
                 self.players_dead += 1
-                file_saved = player.history.save_in_json("../resources/player_" + str(self.players_dead) + ".json")
-                if not file_saved:
-                    print(player.side, " history don't saved")
+                if self.resources_path:
+                    file_saved = player.history.save_in_json(self.resources_path + "player_" + str(self.players_dead) +
+                                                             ".json")
+                    if not file_saved:
+                        print(player.side, " history don't saved")
                 if player.side == "Hero":
                     self.hero = None
                 deleted_players.append(player)
@@ -395,7 +430,7 @@ class Game:
         if self.bonus_days_left == 0:
             free_places = self.get_free_places()
             if len(free_places) > 0:
-                self.bonus_days_left = const.BONUS_LOADING
+                self.bonus_days_left = _BONUS_LOADING
                 [x, y] = random.choice(free_places)
                 self.bonus_list.append(Bonus(1 if random.randrange(5) == 0 else 0, x, y))
 
@@ -407,7 +442,7 @@ class Game:
             self.winSide = "Hero"
 
     def draw(self):
-        print(f'Game day: {self.game_day}')
+        print(f'\nGame day: {self.game_day}')
         if self.bonus_days_left > 0:
             print(f'Bonus days left: {self.bonus_days_left}')
         print("       ", end="")
@@ -422,7 +457,7 @@ class Game:
         for player in self.players_list:
             print("{:<6}".format(
                 "Ready" if player.attack_ready == 0 else
-                "Attack" if player.attack_ready == const.ATTACK_LOADING else player.attack_ready),
+                "Attack" if player.attack_ready == _ATTACK_LOADING else player.attack_ready),
                 end=" ")
         print("\n ", end="")
         print(self.width * "-")
@@ -454,7 +489,7 @@ class Game:
                             else:
                                 char = "E"
                         break
-                    elif player.attack_ready == const.ATTACK_LOADING:
+                    elif player.attack_ready == _ATTACK_LOADING:
                         if player.damageRate == 1:
                             if abs(i - player.y) + abs(j - player.x) <= 1:
                                 char = "#"
@@ -470,13 +505,42 @@ class Game:
         print(" ", end="")
         print(self.width * "-")
 
+    def start(self, is_print=True):
+
+        if is_print:
+            print_rules()
+            self.draw()
+        if self.hero:
+            self.day_init()
+            if is_print:
+                print("Choose action: ", end="")
+
+    def run_day(self, hero_action, is_print=True):
+        self.save_hero_action(hero_action)
+        self.calc_enemy_action()
+        self.end_field.day_end()
+        self.make_players_action()
+        self.day_end()
+        if is_print:
+            self.draw()
+        if self.hero and self.game_is_running:
+            self.day_init()
+            if is_print:
+                print("Choose action: ", end="")
+
+    def print_game_result(self):
+        print(f'{self.winSide} win')
+
+    def game_is_running(self):
+        return self.game_state != "End"
+
 
 class Player:
     def __init__(self, side, _x=0, _y=0):
         self.side = side
         self.x = _x
         self.y = _y
-        self.hit_points = const.DEFAULT_HP
+        self.hit_points = _DEFAULT_HP
         self.bonus_activate = False
 
         self.attack_ready = 0

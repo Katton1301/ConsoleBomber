@@ -1,11 +1,10 @@
 import json
 
 
-def save_unique_data():
-    main_file = "../resources/player.json"
+def save_unique_data(path, main_file):
     # noinspection PyBroadException
     try:
-        with open(main_file, "r") as json_file:
+        with open(path + "/" + main_file, "r") as json_file:
             main_data = json.load(json_file)
     except Exception:
         return
@@ -30,14 +29,14 @@ def save_unique_data():
             unique_data[0] += [main_data[0][i]]
             unique_data[1] += [main_data[1][i]]
 
-    with open("player_check.json", 'w') as json_file:
+    with open(path + "/player_check.json", 'w') as json_file:
         json.dump(main_data, json_file)
 
 
-def collect_players_data(main_file, normalize=True):
+def collect_players_data(path, main_file, normalize=True):
     # noinspection PyBroadException
     try:
-        with open(main_file, "r") as json_file:
+        with open(path + main_file, "r") as json_file:
             main_data = json.load(json_file)
     except Exception:
         return
@@ -46,7 +45,7 @@ def collect_players_data(main_file, normalize=True):
         data = None
         # noinspection PyBroadException
         try:
-            with open("../resources/player_" + str(i) + ".json", "r") as json_file:
+            with open(path + "player_" + str(i) + ".json", "r") as json_file:
                 data = json.load(json_file)
                 if normalize:
                     normalize_data = [[], []]
@@ -82,9 +81,5 @@ def collect_players_data(main_file, normalize=True):
             main_data[0] += data[0]
             main_data[1] += data[1]
 
-    with open(main_file, 'w') as json_file:
+    with open(path + main_file, 'w') as json_file:
         json.dump(main_data, json_file)
-
-
-if __name__ == "__main__":
-    save_unique_data()
